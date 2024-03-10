@@ -4,12 +4,16 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
+
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Component
 public class JwtTokenUtil {
@@ -20,6 +24,8 @@ public class JwtTokenUtil {
     @Value("${jwt.expiration}")
     private int expiration;
 
+    public static final long JWT_TOKEN_VALIDITY = 30 * 24 * 60 * 60;
+
     // Generate token for user
     public String generateToken(String userName) {
         Map<String, Object> claims = new HashMap<>();
@@ -27,7 +33,7 @@ public class JwtTokenUtil {
                 .setClaims(claims)
                 .setSubject(userName)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + expiration * 1000))
+                .setExpiration(new Date(System.currentTimeMillis() + JWT_TOKEN_VALIDITY * 1000))
                 .signWith(SignatureAlgorithm.HS512, secret)
                 .compact();
     }
@@ -36,6 +42,11 @@ public class JwtTokenUtil {
     public String getUsernameFromToken(String token) {
         return getClaimFromToken(token, Claims::getSubject);
     }
+
+    /*public Collection<String> extractRoles(String token) {
+        Claims claims = getAllClaimsFromToken(token);
+        return (Collection<String>) claims.get("authorities");
+    }*/
 
     // Extract expiration date from token
     public Date getExpirationDateFromToken(String token) {
@@ -63,5 +74,11 @@ public class JwtTokenUtil {
     private boolean isTokenExpired(String token) {
         final Date expiration = getExpirationDateFromToken(token);
         return expiration.before(new Date());
+    }
+
+    public Collection<String> extractRoles(Collection<? extends GrantedAuthority> authorities) {
+        return authorities.stream()
+                .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.toList());
     }
 }

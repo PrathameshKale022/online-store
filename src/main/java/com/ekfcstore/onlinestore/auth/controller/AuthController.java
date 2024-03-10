@@ -2,6 +2,7 @@ package com.ekfcstore.onlinestore.auth.controller;
 
 import com.ekfcstore.onlinestore.auth.dto.AuthRequest;
 import com.ekfcstore.onlinestore.auth.dto.AuthResponse;
+import com.ekfcstore.onlinestore.user.service.UserService;
 import com.ekfcstore.onlinestore.utils.JwtTokenUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -10,6 +11,8 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Collection;
 
 
 @RestController
@@ -23,12 +26,18 @@ public class AuthController {
     @Autowired
     private JwtTokenUtil jwtTokenUtil;
 
+    @Autowired
+    private UserService userService;
+
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody AuthRequest request) {
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword()));
         SecurityContextHolder.getContext().setAuthentication(authentication);
+
         String token = jwtTokenUtil.generateToken(request.getUsername());
-        return ResponseEntity.ok(new AuthResponse(token));
+        Collection<String> roles = jwtTokenUtil.extractRoles(authentication.getAuthorities());
+
+        return ResponseEntity.ok(new AuthResponse(token,roles));
     }
 }

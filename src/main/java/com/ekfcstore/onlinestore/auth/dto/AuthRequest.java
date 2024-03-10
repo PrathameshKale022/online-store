@@ -23,4 +23,6 @@ public class AuthRequest {
     @NotEmpty(message = "Please enter password")
     @Size(min = 6, max = 6, message = "Length should be 6 digits")
     private String password;
+
+
 }
