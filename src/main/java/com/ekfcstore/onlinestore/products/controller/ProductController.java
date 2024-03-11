@@ -63,9 +63,9 @@ public class ProductController {
     public ResponseEntity<?> deleteProduct(@RequestHeader("Authorization") String token,@PathVariable Long productId) {
         try {
             productService.deleteProduct(productId);
-            return ResponseEntity.ok().body("Product Deleted Successfully");
+            return ResponseEntity.ok().body("{\"message\": \"Product Deleted Successfully\"}");
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to delete product.");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"error\": \"Failed to delete product.\"}");
         }
     }
 
